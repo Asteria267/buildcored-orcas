@@ -1,31 +1,3 @@
-"""
-BUILDCORED ORCAS — Day 07: KeyboardOscilloscope
-=================================================
-Every keypress generates a sine wave at a unique frequency.
-Multiple keys create chords. Visualize all waveforms and
-their superposition — like a multi-channel oscilloscope.
-
-Hardware concept: Signal Synthesis + Superposition
-When you add sine waves together, you get constructive
-and destructive interference. This is how DACs, speakers,
-and analog synthesizers work. The combined waveform IS
-what comes out of the speaker.
-
-YOUR TASK:
-1. Add more key-to-frequency mappings (TODO #1)
-2. Understand superposition in the visualization (TODO #2)
-3. Run it: python day07_starter.py
-4. Push to GitHub before midnight
-
-CONTROLS:
-- Press keys on your keyboard → tones play
-- Hold multiple keys → chord plays
-- Release key → tone stops
-- Press ESC or close window → quit
-
-NOTE: Click the pygame window first so it captures your keys.
-"""
-
 import numpy as np
 import sounddevice as sd
 import pygame
@@ -90,18 +62,14 @@ audio_stream.start()
 # ============================================================
 # TODO #1: Key-to-Frequency Mapping
 # ============================================================
-# Each keyboard key maps to a musical frequency.
-# These are piano note frequencies (A4 = 440 Hz).
-#
-# The bottom row (Z-M) is one octave.
-# The middle row (A-L) is the next octave.
-# The top row (Q-P) is the highest octave.
+# Added a full third octave on the top row (Q-I → C6–C7).
+# Each row is one octave higher than the row below it —
+# doubling frequency = one octave up (C4=261Hz, C5=523Hz, C6=1047Hz).
 #
 # ADD MORE KEYS to fill out the keyboard!
 # Musical note frequencies: https://pages.mtu.edu/~suits/notefreqs.html
 #
-# pygame key constants: pygame.K_a, pygame.K_b, etc.
-#
+pygame.init()   # must init before using pygame.K_ constants
 
 KEY_TO_FREQ = {
     # Bottom row — low octave
@@ -122,12 +90,14 @@ KEY_TO_FREQ = {
     pygame.K_h: 880.00,   # A5
     pygame.K_j: 987.77,   # B5
 
-    # TODO: Add more keys here!
-    # Top row suggestion:
-    # pygame.K_q: 1046.50,  # C6
-    # pygame.K_w: 1174.66,  # D6
-    # pygame.K_e: 1318.51,  # E6
-    # ... etc
+     pygame.K_q: 1046.50,  # C6
+    pygame.K_w: 1174.66,  # D6
+    pygame.K_e: 1318.51,  # E6
+    pygame.K_r: 1396.91,  # F6
+    pygame.K_t: 1567.98,  # G6
+    pygame.K_y: 1760.00,  # A6
+    pygame.K_u: 1975.53,  # B6
+    pygame.K_i: 2093.00,  # C7
 }
 
 # Reverse lookup for display
@@ -184,29 +154,8 @@ def generate_waveform(freq, num_points, cycles=3):
     return np.sin(2 * np.pi * freq * t)
 
 
-# ============================================================
-# TODO #2: Understand superposition
-# ============================================================
-# The draw_oscilloscope function below draws:
-#   1. Each individual sine wave (thin colored lines)
-#   2. The SUM of all waves (thick white line)
-#
-# The sum IS superposition. When two waves are in phase
-# (peaks align), they add up (constructive interference).
-# When they're out of phase (peak meets trough), they
-# cancel out (destructive interference).
-#
-# Try these experiments:
-# - Hold Z (C4, 261 Hz) and A (C5, 523 Hz) — octave apart
-#   Notice the sum wave has a clear pattern
-# - Hold Z and X and C — a chord
-#   The sum wave gets complex but still periodic
-# - Hold many keys at once — the sum approaches noise
-#
 
 def draw_oscilloscope(surface, frequencies):
-    """Draw individual waveforms and their superposition."""
-
     # Waveform area
     wave_top = 60
     wave_bottom = HEIGHT - 100
