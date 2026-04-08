@@ -145,14 +145,10 @@ def ask_llm_for_fix(error_text):
 #
 
 def build_llm_prompt(error_text):
-    """Build the prompt sent to the LLM."""
-    return f"""You are a terminal error fixer. A command just produced this error:
-
+    return f"""You are a terminal expert. The user got this error:
 {error_text}
-
-Give ONE specific fix in 1-2 sentences. If a command would fix it, show the exact command.
-Be concise. No greetings, no explanations of what the error means — just the fix.
-"""
+Give a one-sentence fix. If it's a missing module, give the 'pip install' command.
+Be fast and direct. No explanations."""
 
 
 # ============================================================
@@ -191,7 +187,11 @@ ERROR_PATTERNS = [
     # Generic
     r"FAILED",
     r"FATAL",
-
+    
+    r"SyntaxError",
+    r"ImportError",
+    r"KeyboardInterrupt",
+    r"connection refused",
     # TODO: Add more patterns you encounter!
 ]
 
