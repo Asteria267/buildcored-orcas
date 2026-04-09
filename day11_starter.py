@@ -78,24 +78,28 @@ SAMPLE_RATE = 44100
 # - Tell it NOT to add markdown code fences
 #
 
-SYNTH_PROMPT_TEMPLATE = """You are a synthesizer parameter generator. Convert this mood into JSON synthesis parameters.
+SYNTH_PROMPT_TEMPLATE = """You are a synthesizer parameter generator.
+Convert the mood into JSON only. No explanation. No markdown. No extra text. Just the JSON.
 
-Mood: "{mood}"
+Output ONLY this exact JSON:
 
-Output ONLY a JSON object with these exact fields. No explanation, no markdown, no code fences. Just the JSON:
+{
+  "base_freq": 200,
+  "tempo": 1.0,
+  "waveform": "sine",
+  "reverb": 0.5,
+  "amplitude": 0.2,
+  "harmonics": 2
+}
 
-{{
-  "base_freq": <integer 80-800, base frequency in Hz>,
-  "tempo": <float 0.3-3.0, slow to fast>,
-  "waveform": "<string: sine, triangle, square, or sawtooth>",
-  "reverb": <float 0.0-1.0, dry to wet>,
-  "amplitude": <float 0.05-0.4, quiet to loud>,
-  "harmonics": <integer 1-5, simple to rich>
-}}
+Allowed waveforms: sine, triangle, square, sawtooth, noise
 
-Match the mood. Calm = sine, low freq, slow tempo, wet reverb. Energetic = sawtooth, higher freq, fast tempo. Tense = square, mid freq.
-JSON only:"""
+Match the mood:
+- calm rainy night = low base_freq, slow tempo, sine or noise, high reverb
+- tense thriller = higher base_freq, faster tempo, sawtooth or noise
+- peaceful forest = low base_freq, slow tempo, triangle or noise, high reverb
 
+JSON only."""
 
 def get_params_from_mood(mood):
     """Ask the LLM for synth parameters matching the mood."""
@@ -215,12 +219,25 @@ def gen_sawtooth(freq, duration, sample_rate=SAMPLE_RATE):
 # After creating, add it to the WAVEFORMS dict so the LLM can use it.
 #
 
+def gen_noise(length, freq, amplitude, harmonics=1):
+    """
+    White noise - perfect for rain, wind, stormy or tense moods
+    """
+    noise = np.random.uniform(-1.0, 1.0, length) * amplitude * 0.6
+    
+    # Make it a bit smoother if harmonics > 1
+    if harmonics > 1:
+        for _ in range(harmonics - 1):
+            noise = (noise + np.roll(noise, 1)) / 2.0
+            
+    return noise
+  
 WAVEFORMS = {
     "sine": gen_sine,
     "square": gen_square,
     "triangle": gen_triangle,
     "sawtooth": gen_sawtooth,
-    # TODO: add your new waveform here
+    "noise": gen_noise,         # New waveform - great for rain, wind, tension, atmosphere
 }
 
 
